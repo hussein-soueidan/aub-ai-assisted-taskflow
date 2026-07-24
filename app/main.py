@@ -39,6 +39,13 @@ app.add_middleware(
 )
 
 
+def _task_not_found(task_id: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Task with id {task_id} not found",
+    )
+
+
 @app.get("/health", tags=["system"])
 def health() -> dict[str, str]:
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
@@ -142,10 +149,7 @@ def bulk_delete_tasks(payload: BulkTaskIds) -> BulkDeleteResponse:
 def get_task(task_id: str) -> TaskResponse:
     task = storage.get_task_by_id(task_id)
     if task is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
-        )
+        raise _task_not_found(task_id)
     return task
 
 
@@ -153,20 +157,14 @@ def get_task(task_id: str) -> TaskResponse:
 def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
     existing = storage.get_task_by_id(task_id)
     if existing is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
-        )
+        raise _task_not_found(task_id)
 
     if payload.status is not None:
         validate_status_transition(existing.status, payload.status)
 
     updated = storage.update_task(task_id, payload)
     if updated is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
-        )
+        raise _task_not_found(task_id)
     return updated
 
 
@@ -177,8 +175,5 @@ def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
 )
 def delete_task(task_id: str) -> Response:
     if not storage.delete_task(task_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
-        )
+        raise _task_not_found(task_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
