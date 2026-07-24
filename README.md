@@ -2,6 +2,11 @@
 
 Taskflow is a FastAPI and vanilla-JavaScript Kanban application for the AUB AI-Assisted Coding mid-course project. The submitted branch is `mid-course-project`.
 
+## Submission
+
+- Public repository: https://github.com/hussein-soueidan/aub-ai-assisted-taskflow
+- Submitted branch: https://github.com/hussein-soueidan/aub-ai-assisted-taskflow/tree/mid-course-project
+
 ## What is included
 
 The Module 1-3 baseline provides:
@@ -96,6 +101,7 @@ node -e "const fs=require('fs');const h=fs.readFileSync('frontend/index.html','u
 - [Reflection](docs/midcourse/reflection.md)
 - [Optional extensions](docs/midcourse/optional-extensions.md)
 - [API summary](docs/midcourse/api-summary.md)
+- [Submission checklist](docs/midcourse/submission.md)
 
 ## Data and scope
 
