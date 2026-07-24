@@ -6,6 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import storage
 from app.business_rules import validate_status_transition
 from app.models import (
+    BulkDeleteResponse,
+    BulkTaskError,
+    BulkTaskIds,
+    BulkTaskUpdate,
+    BulkUpdateResponse,
     TaskCreate,
     TaskPriority,
     TaskResponse,
@@ -51,10 +56,86 @@ def create_task(payload: TaskCreate) -> TaskResponse:
 
 @app.get("/tasks", response_model=list[TaskResponse], tags=["tasks"])
 def list_tasks(
+    status: TaskStatus | None = None,
     status_filter: TaskStatus | None = None,
     priority: TaskPriority | None = None,
+    tag: str | None = None,
+    overdue: bool | None = None,
+    search: str | None = None,
 ) -> list[TaskResponse]:
-    return storage.get_all_tasks(status=status_filter, priority=priority)
+    selected_status = status if status is not None else status_filter
+    return storage.get_all_tasks(
+        status=selected_status,
+        priority=priority,
+        tag=tag,
+        overdue=overdue,
+        search=search,
+    )
+
+
+@app.patch(
+    "/tasks/bulk",
+    response_model=BulkUpdateResponse,
+    tags=["tasks", "bulk"],
+)
+def bulk_update_tasks(payload: BulkTaskUpdate) -> BulkUpdateResponse:
+    updated: list[TaskResponse] = []
+    errors: list[BulkTaskError] = []
+
+    for task_id in payload.task_ids:
+        existing = storage.get_task_by_id(task_id)
+        if existing is None:
+            errors.append(
+                BulkTaskError(
+                    task_id=task_id,
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Task with id {task_id} not found",
+                )
+            )
+            continue
+
+        if payload.changes.status is not None:
+            try:
+                validate_status_transition(existing.status, payload.changes.status)
+            except HTTPException as error:
+                errors.append(
+                    BulkTaskError(
+                        task_id=task_id,
+                        status_code=error.status_code,
+                        detail=str(error.detail),
+                    )
+                )
+                continue
+
+        task = storage.update_task(task_id, payload.changes)
+        if task is not None:
+            updated.append(task)
+
+    return BulkUpdateResponse(updated=updated, errors=errors)
+
+
+@app.post(
+    "/tasks/bulk-delete",
+    response_model=BulkDeleteResponse,
+    tags=["tasks", "bulk"],
+)
+def bulk_delete_tasks(payload: BulkTaskIds) -> BulkDeleteResponse:
+    deleted_ids: list[str] = []
+    errors: list[BulkTaskError] = []
+
+    for task_id in payload.task_ids:
+        if storage.delete_task(task_id):
+            deleted_ids.append(task_id)
+        else:
+            errors.append(
+                BulkTaskError(
+                    task_id=task_id,
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Task with id {task_id} not found",
+                )
+            )
+
+    return BulkDeleteResponse(deleted_ids=deleted_ids, errors=errors)
 
 
 @app.get("/tasks/{task_id}", response_model=TaskResponse, tags=["tasks"])

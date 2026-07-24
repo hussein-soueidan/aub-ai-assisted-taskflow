@@ -17,14 +17,36 @@
       --accent-strong: #0b5f59;
       --danger: #b42318;
       --shadow: 0 12px 30px rgba(28, 44, 52, .08);
+      --column: rgba(255,255,255,.68);
+      --notice-bg: #fff3f2;
+      --notice-line: #f4c7c3;
+      --notice-ink: #8f1d14;
+    }
+    body[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #11191d;
+      --surface: #182328;
+      --surface-soft: #202d33;
+      --ink: #ecf4f3;
+      --muted: #a5b5ba;
+      --line: #334349;
+      --accent: #4cc9b9;
+      --accent-strong: #37ad9f;
+      --danger: #de5c51;
+      --shadow: 0 12px 30px rgba(0, 0, 0, .26);
+      --column: rgba(24,35,40,.82);
+      --notice-bg: #3b2525;
+      --notice-line: #78443f;
+      --notice-ink: #ffb4ad;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       color: var(--ink);
-      background: linear-gradient(145deg, #edf7f5 0%, var(--bg) 42%, #f7f2e8 100%);
+      background: radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 12%, var(--bg)) 0%, var(--bg) 44%, color-mix(in srgb, #c9973a 8%, var(--bg)) 100%);
       font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      transition: color .2s ease, background .25s ease;
     }
     button, input, textarea, select { font: inherit; }
     button { cursor: pointer; }
@@ -36,6 +58,7 @@
     .masthead {
       display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px;
     }
+    .header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
     .eyebrow { margin: 0 0 5px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
     h1 { margin: 0; font-size: clamp(30px, 4vw, 52px); letter-spacing: -.04em; line-height: 1; }
     .subtitle { margin: 10px 0 0; color: var(--muted); }
@@ -45,17 +68,36 @@
     .primary { color: white; background: var(--accent); box-shadow: 0 8px 20px rgba(15,118,110,.2); }
     .primary:hover { background: var(--accent-strong); }
     .secondary { color: var(--ink); background: #e7edef; }
+    body[data-theme="dark"] .secondary { background: #2a3940; }
     .ghost { color: var(--muted); background: transparent; }
+    .ghost:hover { color: var(--ink); background: var(--surface-soft); }
     .danger { color: white; background: var(--danger); }
+    .toolbar {
+      display: grid; gap: 12px; margin-bottom: 18px; padding: 14px; border: 1px solid var(--line);
+      border-radius: 16px; background: color-mix(in srgb, var(--surface) 90%, transparent); box-shadow: var(--shadow);
+    }
+    .filters { display: grid; grid-template-columns: minmax(180px, 1.5fr) repeat(4, minmax(120px, 1fr)); gap: 10px; }
+    .filter-field { display: grid; gap: 4px; }
+    .filter-field span { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .saved-views { display: flex; flex-wrap: wrap; align-items: end; gap: 9px; padding-top: 2px; border-top: 1px solid var(--line); }
+    .saved-views .filter-field { min-width: 210px; }
+    .toolbar-note { margin-left: auto; align-self: center; color: var(--muted); font-size: 12px; }
+    .bulk-bar {
+      display: none; align-items: center; gap: 9px; margin-bottom: 18px; padding: 12px 14px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-radius: 14px;
+      background: color-mix(in srgb, var(--accent) 10%, var(--surface)); box-shadow: var(--shadow);
+    }
+    .bulk-bar.visible { display: flex; }
+    .bulk-count { margin-right: auto; font-weight: 800; }
     .notice {
-      display: none; margin: 0 0 18px; padding: 13px 15px; border: 1px solid #f4c7c3;
-      border-radius: 12px; color: #8f1d14; background: #fff3f2;
+      display: none; margin: 0 0 18px; padding: 13px 15px; border: 1px solid var(--notice-line);
+      border-radius: 12px; color: var(--notice-ink); background: var(--notice-bg);
     }
     .notice.visible { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
     .column {
       min-height: 520px; padding: 15px; border: 1px solid rgba(219,226,230,.9); border-radius: 18px;
-      background: rgba(255,255,255,.68); box-shadow: var(--shadow); backdrop-filter: blur(12px);
+      background: var(--column); box-shadow: var(--shadow); backdrop-filter: blur(12px);
     }
     .column.drag-over { border-color: var(--accent); background: rgba(224,243,240,.9); }
     .column-head { display: flex; align-items: center; justify-content: space-between; padding: 5px 4px 14px; }
@@ -65,16 +107,23 @@
     .card-list { display: grid; gap: 11px; }
     .card {
       position: relative; padding: 15px; border: 1px solid var(--line); border-radius: 14px;
-      background: var(--surface); box-shadow: 0 5px 14px rgba(29,48,58,.06); transition: transform .16s ease, box-shadow .16s ease;
+      background: var(--surface); box-shadow: 0 5px 14px rgba(29,48,58,.06);
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; animation: card-in .26s ease both;
     }
     .card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(29,48,58,.1); }
+    .card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
     .card.dragging { opacity: .55; transform: rotate(1deg); }
-    .card-title { margin: 0 32px 5px 0; font-size: 16px; line-height: 1.3; }
+    .card-title { margin: 0 66px 5px 24px; font-size: 16px; line-height: 1.3; }
+    .select-task { position: absolute; top: 17px; left: 14px; width: 16px; height: 16px; accent-color: var(--accent); }
     .card-description { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
     .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
     .pill { padding: 3px 8px; border-radius: 99px; color: #5d4a22; background: #fff2c7; font-size: 11px; font-weight: 800; }
     .pill.High { color: #9d281e; background: #fee7e5; }
     .pill.Low { color: #245f55; background: #dff4ef; }
+    .tag { padding: 3px 8px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); background: var(--surface-soft); font-size: 11px; font-weight: 750; }
+    .due { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+    .due.overdue { color: var(--danger); font-weight: 800; }
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
     .assignee { color: var(--muted); font-size: 12px; }
     .edit-button { position: absolute; top: 10px; right: 10px; padding: 5px 7px; border: 0; border-radius: 8px; color: var(--muted); background: transparent; }
     .edit-button:hover { color: var(--ink); background: var(--surface-soft); }
@@ -82,12 +131,14 @@
     .loading { grid-column: 1 / -1; padding: 70px; text-align: center; color: var(--muted); }
     .spinner { width: 28px; height: 28px; margin: 0 auto 12px; border: 3px solid #d7e2e2; border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes card-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
     .modal {
       position: fixed; inset: 0; z-index: 10; display: none; place-items: center; padding: 20px;
       background: rgba(18, 28, 33, .52); backdrop-filter: blur(4px);
     }
-    .modal.open { display: grid; }
-    .dialog { width: min(620px, 100%); max-height: 92vh; overflow: auto; border-radius: 20px; background: var(--surface); box-shadow: 0 26px 80px rgba(13,31,39,.26); }
+    .modal.open { display: grid; animation: modal-in .18s ease both; }
+    .dialog { width: min(660px, 100%); max-height: 92vh; overflow: auto; border-radius: 20px; background: var(--surface); box-shadow: 0 26px 80px rgba(13,31,39,.26); }
+    @keyframes modal-in { from { opacity: 0; } to { opacity: 1; } }
     .dialog-head { display: flex; justify-content: space-between; align-items: center; padding: 22px 24px 10px; }
     .dialog-head h2 { margin: 0; font-size: 23px; }
     .close { border: 0; border-radius: 8px; padding: 7px 10px; color: var(--muted); background: transparent; font-size: 20px; }
@@ -102,14 +153,23 @@
     .field-error, .form-error { min-height: 18px; color: var(--danger); font-size: 12px; }
     .dialog-actions { display: flex; justify-content: space-between; gap: 12px; padding-top: 8px; }
     .right-actions { display: flex; gap: 10px; margin-left: auto; }
+    .hint { margin: -8px 0 12px; color: var(--muted); font-size: 12px; }
     @media (max-width: 900px) {
+      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .board { grid-template-columns: 1fr; }
       .column { min-height: 260px; }
     }
     @media (max-width: 620px) {
       .app-shell { padding: 24px 16px 36px; }
       .masthead { align-items: flex-start; flex-direction: column; }
+      .filters { grid-template-columns: 1fr; }
+      .toolbar-note { margin-left: 0; }
+      .bulk-bar { align-items: stretch; flex-direction: column; }
+      .bulk-count { margin-right: 0; }
       .field-row { grid-template-columns: 1fr; gap: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
@@ -121,8 +181,68 @@
         <h1>Taskflow</h1>
         <p class="subtitle">A focused board for work that is moving forward.</p>
       </div>
-      <button id="new-task" class="primary" type="button">+ New task</button>
+      <div class="header-actions">
+        <button id="theme-toggle" class="secondary" type="button" aria-label="Switch color theme">Dark theme</button>
+        <button id="new-task" class="primary" type="button">+ New task</button>
+      </div>
     </header>
+
+    <section class="toolbar" aria-label="Task filters and saved views">
+      <div class="filters">
+        <label class="filter-field">
+          <span>Search</span>
+          <input id="filter-search" type="search" placeholder="Title or description">
+        </label>
+        <label class="filter-field">
+          <span>Status</span>
+          <select id="filter-status">
+            <option value="">All statuses</option>
+            <option value="ToDo">To Do</option>
+            <option value="InProgress">In Progress</option>
+            <option value="Done">Done</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span>Priority</span>
+          <select id="filter-priority">
+            <option value="">All priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span>Tag</span>
+          <input id="filter-tag" type="text" maxlength="24" placeholder="e.g. backend">
+        </label>
+        <label class="filter-field">
+          <span>Due</span>
+          <select id="filter-overdue">
+            <option value="">Any due date</option>
+            <option value="true">Overdue only</option>
+            <option value="false">Not overdue</option>
+          </select>
+        </label>
+      </div>
+      <div class="saved-views">
+        <label class="filter-field">
+          <span>Saved view</span>
+          <select id="saved-view"><option value="">Choose a preset</option></select>
+        </label>
+        <button id="save-view" class="secondary" type="button">Save current</button>
+        <button id="delete-view" class="ghost" type="button">Delete preset</button>
+        <button id="clear-filters" class="ghost" type="button">Clear filters</button>
+        <span id="result-summary" class="toolbar-note" aria-live="polite">Showing all tasks</span>
+      </div>
+    </section>
+
+    <div id="bulk-bar" class="bulk-bar" aria-live="polite">
+      <span id="bulk-count" class="bulk-count">0 selected</span>
+      <button class="secondary" type="button" data-bulk-status="InProgress">Move to In Progress</button>
+      <button class="secondary" type="button" data-bulk-status="Done">Move to Done</button>
+      <button id="bulk-delete" class="danger" type="button">Delete selected</button>
+      <button id="clear-selection" class="ghost" type="button">Clear</button>
+    </div>
 
     <div id="notice" class="notice" role="alert" aria-live="assertive">
       <span id="notice-text"></span>
@@ -173,6 +293,17 @@
           <label for="assignee">Assignee</label>
           <input id="assignee" name="assignee" autocomplete="off">
         </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="due-date">Due date</label>
+            <input id="due-date" name="due_date" type="date">
+          </div>
+          <div class="field">
+            <label for="tags">Tags</label>
+            <input id="tags" name="tags" maxlength="150" placeholder="backend, urgent">
+          </div>
+        </div>
+        <p class="hint">Use up to five comma-separated tags; each tag may contain up to 24 characters.</p>
         <div id="form-error" class="form-error" role="alert"></div>
         <div class="dialog-actions">
           <button id="delete-task" class="danger" type="button" hidden>Delete</button>
@@ -190,6 +321,15 @@
     const STATUSES = ["ToDo", "InProgress", "Done"];
     const STATUS_LABELS = { ToDo: "To Do", InProgress: "In Progress", Done: "Done" };
     const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 };
+    const SAVED_VIEWS_KEY = "taskflow.savedViews";
+    const THEME_KEY = "taskflow.theme";
+    const FILTER_IDS = {
+      search: "filter-search",
+      status: "filter-status",
+      priority: "filter-priority",
+      tag: "filter-tag",
+      overdue: "filter-overdue"
+    };
 
     const board = document.querySelector("#board");
     const notice = document.querySelector("#notice");
@@ -201,10 +341,17 @@
     const titleError = document.querySelector("#title-error");
     const formError = document.querySelector("#form-error");
     const deleteButton = document.querySelector("#delete-task");
+    const bulkBar = document.querySelector("#bulk-bar");
+    const bulkCount = document.querySelector("#bulk-count");
+    const savedViewSelect = document.querySelector("#saved-view");
+    const resultSummary = document.querySelector("#result-summary");
+    const themeToggle = document.querySelector("#theme-toggle");
 
     let tasks = [];
     let draggedTaskId = null;
     let lastFocusedElement = null;
+    let filterTimer = null;
+    const selectedTaskIds = new Set();
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, character => ({
@@ -231,12 +378,54 @@
       noticeText.textContent = "";
     }
 
+    function getFilterState() {
+      return Object.fromEntries(
+        Object.entries(FILTER_IDS).map(([key, id]) => [key, document.querySelector(`#${id}`).value.trim()])
+      );
+    }
+
+    function setFilterState(filters = {}) {
+      Object.entries(FILTER_IDS).forEach(([key, id]) => {
+        document.querySelector(`#${id}`).value = filters[key] || "";
+      });
+    }
+
+    function buildTaskUrl() {
+      const params = new URLSearchParams();
+      Object.entries(getFilterState()).forEach(([key, value]) => {
+        if (value) params.set(key, value);
+      });
+      const query = params.toString();
+      return `${API_BASE}/tasks${query ? `?${query}` : ""}`;
+    }
+
+    function isOverdue(task) {
+      if (!task.due_date || task.status === "Done") return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return new Date(`${task.due_date}T00:00:00`) < today;
+    }
+
+    function formatDueDate(value) {
+      return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" })
+        .format(new Date(`${value}T00:00:00`));
+    }
+
     function renderCard(task) {
       const description = task.description
         ? `<p class="card-description">${escapeHtml(task.description)}</p>`
         : "";
+      const tags = task.tags.length
+        ? `<div class="tags">${task.tags.map(tag => `<span class="tag">#${escapeHtml(tag)}</span>`).join("")}</div>`
+        : "";
+      const overdue = isOverdue(task);
+      const dueDate = task.due_date
+        ? `<div class="due${overdue ? " overdue" : ""}">${overdue ? "Overdue" : "Due"} ${escapeHtml(formatDueDate(task.due_date))}</div>`
+        : "";
+      const selected = selectedTaskIds.has(task.id);
       return `
-        <article class="card" draggable="true" data-task-id="${escapeHtml(task.id)}">
+        <article class="card${selected ? " selected" : ""}" draggable="true" data-task-id="${escapeHtml(task.id)}">
+          <input class="select-task" type="checkbox" data-select-id="${escapeHtml(task.id)}" aria-label="Select ${escapeHtml(task.title)}" ${selected ? "checked" : ""}>
           <button class="edit-button" type="button" data-edit-id="${escapeHtml(task.id)}" aria-label="Edit ${escapeHtml(task.title)}">Edit</button>
           <h3 class="card-title">${escapeHtml(task.title)}</h3>
           ${description}
@@ -244,17 +433,28 @@
             <span class="pill ${escapeHtml(task.priority)}">${escapeHtml(task.priority)}</span>
             <span class="assignee">${escapeHtml(task.assignee || "Unassigned")}</span>
           </div>
+          ${dueDate}
+          ${tags}
         </article>`;
     }
 
+    function updateBulkBar() {
+      const count = selectedTaskIds.size;
+      bulkCount.textContent = `${count} selected`;
+      bulkBar.classList.toggle("visible", count > 0);
+    }
+
     function renderBoard() {
+      for (const taskId of selectedTaskIds) {
+        if (!tasks.some(task => task.id === taskId)) selectedTaskIds.delete(taskId);
+      }
       board.innerHTML = STATUSES.map(status => {
         const columnTasks = tasks
           .filter(task => task.status === status)
           .sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority] || a.id.localeCompare(b.id));
         const content = columnTasks.length
           ? columnTasks.map(renderCard).join("")
-          : `<div class="empty">No tasks here yet.</div>`;
+          : `<div class="empty">No tasks match here.</div>`;
         return `
           <section class="column" data-status="${status}" aria-labelledby="heading-${status}">
             <header class="column-head">
@@ -264,14 +464,19 @@
             <div class="card-list">${content}</div>
           </section>`;
       }).join("");
+      const activeFilters = Object.values(getFilterState()).filter(Boolean).length;
+      resultSummary.textContent = `${tasks.length} task${tasks.length === 1 ? "" : "s"}${activeFilters ? ` across ${activeFilters} active filter${activeFilters === 1 ? "" : "s"}` : ""}`;
+      updateBulkBar();
       attachBoardEvents();
     }
 
-    async function fetchTasks() {
-      board.innerHTML = `<div class="loading"><div class="spinner"></div>Loading tasks...</div>`;
+    async function fetchTasks({ showLoading = true } = {}) {
+      if (showLoading) {
+        board.innerHTML = `<div class="loading"><div class="spinner"></div>Loading tasks...</div>`;
+      }
       clearNotice();
       try {
-        const response = await fetch(`${API_BASE}/tasks`);
+        const response = await fetch(buildTaskUrl());
         if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
         tasks = await response.json();
         renderBoard();
@@ -281,6 +486,7 @@
             <header class="column-head"><h2 class="column-title"><span class="dot"></span>${STATUS_LABELS[status]}</h2><span class="count">0</span></header>
             <div class="empty">Tasks are unavailable.</div>
           </section>`).join("");
+        resultSummary.textContent = "Tasks unavailable";
         showNotice("Could not load tasks. Check that the API is running.", true);
       }
     }
@@ -289,8 +495,20 @@
       board.querySelectorAll("[data-edit-id]").forEach(button => {
         button.addEventListener("click", () => openEditModal(button.dataset.editId));
       });
+      board.querySelectorAll("[data-select-id]").forEach(checkbox => {
+        checkbox.addEventListener("change", () => {
+          if (checkbox.checked) selectedTaskIds.add(checkbox.dataset.selectId);
+          else selectedTaskIds.delete(checkbox.dataset.selectId);
+          checkbox.closest(".card").classList.toggle("selected", checkbox.checked);
+          updateBulkBar();
+        });
+      });
       board.querySelectorAll(".card").forEach(card => {
         card.addEventListener("dragstart", event => {
+          if (event.target.matches("button, input")) {
+            event.preventDefault();
+            return;
+          }
           draggedTaskId = card.dataset.taskId;
           card.classList.add("dragging");
           event.dataTransfer.effectAllowed = "move";
@@ -330,14 +548,102 @@
         });
         const payload = await response.json();
         if (!response.ok) throw new Error(messageFromError(payload, "The move was rejected."));
-        tasks = tasks.map(item => item.id === taskId ? payload : item);
-        renderBoard();
-        clearNotice();
+        await fetchTasks({ showLoading: false });
       } catch (error) {
         task.status = previousStatus;
         renderBoard();
         showNotice(error.message || "The move could not be saved.");
       }
+    }
+
+    async function runBulkUpdate(targetStatus) {
+      const taskIds = [...selectedTaskIds];
+      if (!taskIds.length) return;
+      clearNotice();
+      try {
+        const response = await fetch(`${API_BASE}/tasks/bulk`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task_ids: taskIds, changes: { status: targetStatus } })
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(messageFromError(payload, "Bulk update failed."));
+        selectedTaskIds.clear();
+        await fetchTasks({ showLoading: false });
+        if (payload.errors.length) {
+          showNotice(`${payload.updated.length} updated; ${payload.errors.length} rejected. ${payload.errors[0].detail}`);
+        }
+      } catch (error) {
+        showNotice(error.message || "The bulk update could not be saved.");
+      }
+    }
+
+    async function runBulkDelete() {
+      const taskIds = [...selectedTaskIds];
+      if (!taskIds.length) return;
+      clearNotice();
+      try {
+        const response = await fetch(`${API_BASE}/tasks/bulk-delete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task_ids: taskIds })
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(messageFromError(payload, "Bulk delete failed."));
+        selectedTaskIds.clear();
+        await fetchTasks({ showLoading: false });
+        if (payload.errors.length) {
+          showNotice(`${payload.deleted_ids.length} deleted; ${payload.errors.length} could not be found.`);
+        }
+      } catch (error) {
+        showNotice(error.message || "The selected tasks could not be deleted.");
+      }
+    }
+
+    function loadSavedViews() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SAVED_VIEWS_KEY) || "[]");
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function renderSavedViews(selectedId = "") {
+      const views = loadSavedViews();
+      savedViewSelect.innerHTML = `<option value="">Choose a preset</option>${views.map(view =>
+        `<option value="${escapeHtml(view.id)}">${escapeHtml(view.name)}</option>`
+      ).join("")}`;
+      savedViewSelect.value = selectedId;
+    }
+
+    function saveCurrentView() {
+      const name = window.prompt("Name this saved view:");
+      if (!name?.trim()) return;
+      const views = loadSavedViews();
+      const view = {
+        id: `${Date.now()}`,
+        name: name.trim().slice(0, 40),
+        filters: getFilterState()
+      };
+      views.push(view);
+      localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(views));
+      renderSavedViews(view.id);
+    }
+
+    function deleteSelectedView() {
+      const selectedId = savedViewSelect.value;
+      if (!selectedId) return;
+      const views = loadSavedViews().filter(view => view.id !== selectedId);
+      localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(views));
+      renderSavedViews();
+    }
+
+    function parseTags(value) {
+      const tags = value.split(",").map(tag => tag.trim()).filter(Boolean);
+      if (tags.length > 5) throw new Error("Use no more than five tags.");
+      if (tags.some(tag => tag.length > 24)) throw new Error("Each tag must be 24 characters or fewer.");
+      return tags;
     }
 
     function resetForm() {
@@ -381,6 +687,8 @@
       document.querySelector("#status").value = task.status;
       document.querySelector("#priority").value = task.priority;
       document.querySelector("#assignee").value = task.assignee || "";
+      document.querySelector("#due-date").value = task.due_date || "";
+      document.querySelector("#tags").value = task.tags.join(", ");
       deleteButton.hidden = false;
       openModal();
     }
@@ -395,14 +703,47 @@
         titleInput.focus();
         return;
       }
+
+      let tags;
+      try {
+        tags = parseTags(document.querySelector("#tags").value);
+      } catch (error) {
+        formError.textContent = error.message;
+        return;
+      }
+
       const taskId = document.querySelector("#task-id").value;
-      const payload = {
+      const formValues = {
         title,
         description: document.querySelector("#description").value,
         status: document.querySelector("#status").value,
         priority: document.querySelector("#priority").value,
-        assignee: document.querySelector("#assignee").value.trim() || null
+        assignee: document.querySelector("#assignee").value.trim() || null,
+        due_date: document.querySelector("#due-date").value || null,
+        tags
       };
+      let payload = formValues;
+
+      if (taskId) {
+        const original = tasks.find(task => task.id === taskId);
+        if (!original) {
+          formError.textContent = "This task is no longer available.";
+          return;
+        }
+        payload = Object.fromEntries(
+          Object.entries(formValues).filter(([key, value]) => {
+            const previous = original[key];
+            return Array.isArray(value)
+              ? JSON.stringify(value.map(tag => tag.toLowerCase())) !== JSON.stringify(previous)
+              : value !== previous;
+          })
+        );
+        if (!Object.keys(payload).length) {
+          closeModal();
+          return;
+        }
+      }
+
       try {
         const response = await fetch(taskId ? `${API_BASE}/tasks/${taskId}` : `${API_BASE}/tasks`, {
           method: taskId ? "PATCH" : "POST",
@@ -438,6 +779,44 @@
       }
     });
 
+    function applyTheme(theme) {
+      document.body.dataset.theme = theme;
+      themeToggle.textContent = theme === "dark" ? "Light theme" : "Dark theme";
+      localStorage.setItem(THEME_KEY, theme);
+    }
+
+    Object.values(FILTER_IDS).forEach(id => {
+      const field = document.querySelector(`#${id}`);
+      const eventName = field.matches("input") ? "input" : "change";
+      field.addEventListener(eventName, () => {
+        window.clearTimeout(filterTimer);
+        filterTimer = window.setTimeout(() => fetchTasks(), field.matches("input") ? 250 : 0);
+      });
+    });
+    savedViewSelect.addEventListener("change", () => {
+      const view = loadSavedViews().find(item => item.id === savedViewSelect.value);
+      if (!view) return;
+      setFilterState(view.filters);
+      fetchTasks();
+    });
+    document.querySelector("#save-view").addEventListener("click", saveCurrentView);
+    document.querySelector("#delete-view").addEventListener("click", deleteSelectedView);
+    document.querySelector("#clear-filters").addEventListener("click", () => {
+      setFilterState();
+      savedViewSelect.value = "";
+      fetchTasks();
+    });
+    document.querySelectorAll("[data-bulk-status]").forEach(button => {
+      button.addEventListener("click", () => runBulkUpdate(button.dataset.bulkStatus));
+    });
+    document.querySelector("#bulk-delete").addEventListener("click", runBulkDelete);
+    document.querySelector("#clear-selection").addEventListener("click", () => {
+      selectedTaskIds.clear();
+      renderBoard();
+    });
+    themeToggle.addEventListener("click", () => {
+      applyTheme(document.body.dataset.theme === "dark" ? "light" : "dark");
+    });
     document.querySelector("#new-task").addEventListener("click", openCreateModal);
     document.querySelector("#close-modal").addEventListener("click", closeModal);
     document.querySelector("#cancel-modal").addEventListener("click", closeModal);
@@ -449,8 +828,9 @@
       if (event.key === "Escape" && modal.classList.contains("open")) closeModal();
     });
 
+    applyTheme(localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light");
+    renderSavedViews();
     fetchTasks();
   </script>
 </body>
 </html>
-

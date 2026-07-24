@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from uuid import uuid4
 
 from app.models import TaskCreate, TaskPriority, TaskResponse, TaskStatus, TaskUpdate
@@ -22,12 +22,37 @@ def add_task(payload: TaskCreate) -> TaskResponse:
 def get_all_tasks(
     status: TaskStatus | None = None,
     priority: TaskPriority | None = None,
+    tag: str | None = None,
+    overdue: bool | None = None,
+    search: str | None = None,
 ) -> list[TaskResponse]:
     tasks = list(_tasks.values())
     if status is not None:
         tasks = [task for task in tasks if task.status == status]
     if priority is not None:
         tasks = [task for task in tasks if task.priority == priority]
+    if tag is not None:
+        normalized_tag = tag.strip().lower()
+        tasks = [task for task in tasks if normalized_tag in task.tags]
+    if overdue is not None:
+        today = date.today()
+        tasks = [
+            task
+            for task in tasks
+            if (
+                task.due_date is not None
+                and task.due_date < today
+                and task.status != TaskStatus.DONE
+            )
+            is overdue
+        ]
+    if search is not None and (needle := search.strip().casefold()):
+        tasks = [
+            task
+            for task in tasks
+            if needle in task.title.casefold()
+            or needle in task.description.casefold()
+        ]
     return tasks
 
 
