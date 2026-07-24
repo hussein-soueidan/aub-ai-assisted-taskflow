@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
 from app.models import TaskStatus
 
@@ -19,10 +19,9 @@ def validate_status_transition(current: TaskStatus, new: TaskStatus) -> None:
             for source, target in VALID_TRANSITIONS
         )
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,
             detail=(
                 f"Invalid status transition from {current.value} to {new.value}. "
                 f"Allowed transitions: {allowed}"
             ),
         )
-
