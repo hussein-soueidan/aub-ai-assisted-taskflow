@@ -69,9 +69,10 @@ def update_task(task_id: str, payload: TaskUpdate) -> TaskResponse | None:
     if not changes:
         return existing
 
-    updated = existing.model_copy(
-        update={**changes, "updated_at": datetime.now(timezone.utc)}
-    )
+    updated_data = existing.model_dump()
+    updated_data.update(changes)
+    updated_data["updated_at"] = datetime.now(timezone.utc)
+    updated = TaskResponse.model_validate(updated_data)
     _tasks[task_id] = updated
     return updated
 

@@ -86,7 +86,9 @@ python -m tests.verify_a
 python -m pytest tests -v
 ```
 
-The final suite contains 40 tests: the original 20 baseline tests plus 20 feature and extension tests. JavaScript syntax can be checked with Node:
+The final suite contains 42 tests: the original 20 baseline tests, 20 feature and
+extension tests, and 2 facilitator-feedback regression tests for explicit null
+task updates. JavaScript syntax can be checked with Node:
 
 ```powershell
 node -e "const fs=require('fs');const h=fs.readFileSync('frontend/index.html','utf8');new Function(h.match(/<script>([\s\S]*)<\/script>/)[1]);console.log('JavaScript syntax OK')"

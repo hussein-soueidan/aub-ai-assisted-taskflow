@@ -1,7 +1,14 @@
 from datetime import date, datetime
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 
 
 class TaskStatus(str, Enum):
@@ -80,6 +87,24 @@ class TaskUpdate(BaseModel):
     assignee: str | None = None
     due_date: date | None = None
     tags: list[str] | None = None
+
+    @field_validator(
+        "title",
+        "description",
+        "status",
+        "priority",
+        "tags",
+        mode="before",
+    )
+    @classmethod
+    def reject_null_for_required_fields(
+        cls,
+        value: object,
+        info: ValidationInfo,
+    ) -> object:
+        if value is None:
+            raise ValueError(f"{info.field_name} cannot be null")
+        return value
 
     @field_validator("title")
     @classmethod

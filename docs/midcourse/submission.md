@@ -13,7 +13,8 @@
 - [x] All optional extensions implemented: bulk operations, saved views, and frontend themes/animations.
 - [x] All existing tests retained.
 - [x] Twenty new feature/extension tests added.
-- [x] Final result: 40 passing tests.
+- [x] Two facilitator-feedback regression tests added for explicit null updates.
+- [x] Final result: 42 passing tests.
 - [x] Two deliberate Break Tests documented.
 - [x] User stories, mini ADR, prompt log, verification, and 250-500 word reflection included.
 - [x] README includes backend, frontend, Swagger, and test commands.

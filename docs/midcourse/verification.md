@@ -22,11 +22,15 @@ Baseline commands and results:
 ## Final automated results
 
 ```text
-> python -m pytest tests -q
-40 passed, 1 warning in 0.27s
+> python -m pytest tests -v
+42 passed, 1 warning in 0.23s
 ```
 
-The 40 tests include the original 20 baseline tests and 20 feature/extension tests. Covered areas include due-date validation, overdue true/false filtering, tag normalization and limits, combined queries, bulk partial failures, CRUD, status transitions, and delete behavior.
+The 42 tests include the original 20 baseline tests, 20 feature/extension tests,
+and 2 facilitator-feedback regression tests. Covered areas include due-date
+validation, overdue true/false filtering, tag normalization and limits, combined
+queries, bulk partial failures, CRUD, status transitions, explicit null updates,
+and delete behavior.
 
 Frontend syntax check:
 
@@ -36,6 +40,36 @@ JavaScript syntax OK
 ```
 
 The remaining warning is emitted by the installed Starlette `TestClient` compatibility shim and does not change test outcomes.
+
+## Facilitator feedback regression
+
+The first submission accepted explicit `null` values for `title` and `status`.
+This could store an invalid task, and a later status update could fail with a
+500 response when the transition rule tried to read the invalid status.
+
+Root cause:
+
+- `TaskUpdate` used `None` for both omitted fields and explicit JSON nulls.
+- `model_copy(update=...)` did not revalidate the completed stored task.
+
+Correction:
+
+- Explicit nulls are rejected for `title`, `description`, `status`, `priority`,
+  and `tags`; omitting those fields is still valid for a partial update.
+- Intentionally nullable `assignee` and `due_date` fields can still be cleared.
+- The storage layer now constructs and validates a complete `TaskResponse`
+  before replacing stored state.
+
+Regression evidence:
+
+```text
+tests/test_tasks.py::test_patch_null_title_returns_422_and_preserves_title PASSED
+tests/test_tasks.py::test_patch_null_status_returns_422_without_corrupting_later_updates PASSED
+```
+
+The second test follows the rejected `status: null` request with a valid
+`ToDo` to `InProgress` update and receives 200, proving stored state remains
+usable. The complete suite then passed 42/42 tests.
 
 ## Manual Chrome checks
 
@@ -65,7 +99,8 @@ The refactor extracted repeated 404 construction to `_task_not_found()` without 
 | Bulk update/delete partial failures | PASS | PASS |
 | Frontend JavaScript parses and required board/modal/filter controls remain present | PASS | PASS |
 
-Evidence: 40/40 pytest tests passed immediately before and after the refactor; the JavaScript syntax check passed after the refactor.
+Evidence: the then-current 40/40 pytest tests passed immediately before and
+after the refactor; the JavaScript syntax check passed after the refactor.
 
 ## Break Test 1 - Tag normalization
 
@@ -112,7 +147,9 @@ AssertionError: response contained one extra future task id
 1 failed
 ```
 
-The failure proves the test distinguishes genuinely overdue work from future work. After restoring `< today`, the targeted test and the full 40-test suite passed.
+The failure proves the test distinguishes genuinely overdue work from future
+work. After restoring `< today`, the targeted test and the then-current
+40-test suite passed.
 
 ## Debugging decisions
 

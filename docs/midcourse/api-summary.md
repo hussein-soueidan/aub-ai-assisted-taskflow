@@ -51,5 +51,7 @@ Missing task ids return 404. Request/model validation and invalid transitions re
 
 - Model verification: 8 PASS checks.
 - Baseline suite: 20 passing tests.
-- Final suite: 40 passing tests.
+- Final suite: 42 passing tests.
+- Explicit `null` updates to required task fields return 422 without modifying
+  stored task data.
 - Break Test proof: tag normalization and overdue detection each failed when its production rule was intentionally broken, then passed after restoration.

@@ -155,6 +155,39 @@ def test_patch_invalid_status_value_returns_422(
     assert response.status_code == 422
 
 
+def test_patch_null_title_returns_422_and_preserves_title(
+    client: TestClient,
+    created_task: dict,
+) -> None:
+    response = client.patch(
+        f"/tasks/{created_task['id']}",
+        json={"title": None},
+    )
+    assert response.status_code == 422
+
+    stored = client.get(f"/tasks/{created_task['id']}")
+    assert stored.status_code == 200
+    assert stored.json()["title"] == created_task["title"]
+
+
+def test_patch_null_status_returns_422_without_corrupting_later_updates(
+    client: TestClient,
+    created_task: dict,
+) -> None:
+    rejected = client.patch(
+        f"/tasks/{created_task['id']}",
+        json={"status": None},
+    )
+    assert rejected.status_code == 422
+
+    valid_update = client.patch(
+        f"/tasks/{created_task['id']}",
+        json={"status": "InProgress"},
+    )
+    assert valid_update.status_code == 200
+    assert valid_update.json()["status"] == "InProgress"
+
+
 def test_delete_existing_returns_204_no_body(
     client: TestClient,
     created_task: dict,
@@ -167,4 +200,3 @@ def test_delete_existing_returns_204_no_body(
 
 def test_delete_missing_returns_404(client: TestClient) -> None:
     assert client.delete("/tasks/missing").status_code == 404
-
