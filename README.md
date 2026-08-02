@@ -1,11 +1,88 @@
 # Taskflow Task Tracker
 
-Taskflow is a FastAPI and vanilla-JavaScript Kanban application for the AUB AI-Assisted Coding mid-course project. The submitted branch is `mid-course-project`.
+Taskflow is a FastAPI and vanilla-JavaScript Kanban application for the AUB
+AI-Assisted Coding course project. The release-readiness submission is on
+`final-project`.
 
 ## Submission
 
 - Public repository: https://github.com/hussein-soueidan/aub-ai-assisted-taskflow
-- Submitted branch: https://github.com/hussein-soueidan/aub-ai-assisted-taskflow/tree/mid-course-project
+- Final submitted branch: https://github.com/hussein-soueidan/aub-ai-assisted-taskflow/tree/final-project
+- Preserved mid-course branch: https://github.com/hussein-soueidan/aub-ai-assisted-taskflow/tree/mid-course-project
+
+## Final Project
+
+Branch reviewed: `final-project`
+
+### What this submission demonstrates
+
+- The existing Task Tracker still runs inside the intended course scope.
+- CI runs the pytest suite on push and pull request.
+- The Docker image builds and runs with `/health` returning 200 and the process
+  owned by a non-root `app` user.
+- AI review, security, governance, and ownership evidence is in `docs/`.
+- No new product feature or final-project edit to `app/`/`frontend/` was made.
+
+### How to run locally
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+In a second terminal:
+
+```powershell
+python -m http.server 5500 --directory frontend
+```
+
+Open `http://localhost:5500`; API docs are at `http://localhost:8000/docs`.
+
+### How to run tests
+
+```powershell
+python -m tests.verify_a
+python -m pytest tests -v
+```
+
+The final baseline is 8 model PASS checks and 42 passing pytest tests.
+
+### How to run with Docker
+
+The image serves the backend API; serve `frontend/` separately as shown above.
+
+```text
+docker build --pull -t taskflow:final .
+docker run --rm -d --name taskflow-final -p 8000:8000 taskflow:final
+curl --fail http://127.0.0.1:8000/health
+docker exec taskflow-final whoami
+docker stop taskflow-final
+```
+
+The health call should return JSON with `"status":"ok"`; `whoami` should
+return `app`.
+
+### Final evidence files
+
+- [Release evidence](docs/release-evidence.md)
+- [Final AI review and ownership](docs/final-ai-review.md)
+- [Personal AI playbook](docs/ai-playbook.md)
+- [Security review](docs/security-review.md)
+- [Governance worksheet](docs/governance-worksheet.md)
+- [Architecture](docs/architecture.md)
+- [Release-engineering decision](docs/decisions/release-engineering.md)
+- [Reusable release-safety checklist](docs/checklists/release-safety.md)
+
+### AI assistance summary
+
+AI helped draft and review CI, Docker, documentation, security findings, and
+release evidence. I verified the work with the full test suite, a live `/health`
+request, browser checks, diff/config inspection, tracked-secret scans, and the
+CI container smoke test. I rejected advice to skip the container runtime check
+and corrected any claim that Docker was verified locally, because this Windows
+environment does not have Docker installed.
 
 ## What is included
 
@@ -107,4 +184,7 @@ node -e "const fs=require('fs');const h=fs.readFileSync('frontend/index.html','u
 
 ## Data and scope
 
-Storage is intentionally in memory to match the course architecture. Restarting the API clears tasks. The repository contains no authentication, credentials, private data, database, Docker setup, or unrelated generated artifacts.
+Storage is intentionally in memory to match the course architecture. Restarting
+the API clears tasks. The repository contains no authentication, credentials,
+private data, production database, deployment workflow, or claim of production
+readiness. Docker packages the backend API only.

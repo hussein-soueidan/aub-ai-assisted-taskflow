@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Pytest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run test suite
+        run: python -m pytest tests -v
+
+  container-smoke:
+    name: Docker build and runtime smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Build image
+        run: docker build --pull -t taskflow:ci .
+
+      - name: Start container
+        run: docker run --rm -d --name taskflow-ci -p 8000:8000 taskflow:ci
+
+      - name: Verify health endpoint and non-root user
+        shell: bash
+        run: |
+          set -euo pipefail
+          health_ok=0
+          for attempt in $(seq 1 20); do
+            if response="$(curl --fail --silent --show-error http://127.0.0.1:8000/health)"; then
+              echo "$response"
+              health_ok=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$health_ok" -ne 1 ]; then
+            docker logs taskflow-ci
+            exit 1
+          fi
+
+          test "$(docker exec taskflow-ci whoami)" = "app"
+
+      - name: Remove smoke-test container
+        if: always()
+        shell: bash
+        run: |
+          if docker container inspect taskflow-ci >/dev/null 2>&1; then
+            docker rm -f taskflow-ci
+          fi
