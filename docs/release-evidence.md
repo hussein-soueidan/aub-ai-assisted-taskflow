@@ -27,7 +27,17 @@
 ## CI evidence
 
 - Workflow: `.github/workflows/ci.yml`
-- Latest green run: pending the first `final-project` push.
+- First published run (red evidence):
+  [run 30747467470](https://github.com/hussein-soueidan/aub-ai-assisted-taskflow/actions/runs/30747467470).
+  Pytest passed, while the Docker build correctly failed because the broad
+  `*.txt` ignore rule also removed `requirements.txt` from the build context.
+- Correction: added the narrow `!requirements.txt` exception; no application
+  code or test expectation was changed.
+- Verified green run:
+  [run 30747512895](https://github.com/hussein-soueidan/aub-ai-assisted-taskflow/actions/runs/30747512895).
+  Both `Pytest` and `Docker build and runtime smoke test` completed successfully.
+- Workflow history:
+  [CI runs](https://github.com/hussein-soueidan/aub-ai-assisted-taskflow/actions/workflows/ci.yml).
 - Test command used by CI: `python -m pytest tests -v`
 - Python version: explicitly `3.11`.
 - Container job: builds the Dockerfile, starts the API, checks `/health`, and
@@ -61,4 +71,4 @@
 | The Kanban/create-edit flow is available at port 5500. | Running static server and in-app browser DOM/visual check. | PASS: three columns plus New/Edit task dialogs. | README keeps the static-server command. |
 | Required update fields reject explicit null. | `tests/test_tasks.py` null regressions and full pytest run. | PASS: 422 and stored state remains valid. | Retained the facilitator-feedback note and tests. |
 | DELETE returns an empty 204, not JSON. | `app/main.py` and `test_delete_existing_returns_204_no_body`. | PASS. | API wording remains 204/no body. |
-| The container runs as non-root and serves `/health`. | Dockerfile inspection; CI runtime smoke job. | Pending first CI run. | Do not claim local Docker success. |
+| The container runs as non-root and serves `/health`. | Dockerfile inspection; successful CI runtime smoke [run 30747512895](https://github.com/hussein-soueidan/aub-ai-assisted-taskflow/actions/runs/30747512895). | PASS: image built, `/health` succeeded, and `whoami` returned `app`. | Retain the honest note that Docker was unavailable locally. |
