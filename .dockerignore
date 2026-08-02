@@ -21,4 +21,5 @@ Thumbs.db
 *.log
 *.pdf
 *.txt
+!requirements.txt
 *.md
